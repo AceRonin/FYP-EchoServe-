@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Open POS</title>
+  <link rel="stylesheet" href="../css/style.css?v=20261028-dark-theme">
+</head>
+<body>
+
+  <div id="main-app">
+    <!-- NAVBAR -->
+    <header>
+      <div class="brand-section">
+        <div class="brand-mark" aria-hidden="true">E</div>
+        <div>
+          <h1 id="nav-shop-name" class="brand-title">Loading...</h1>
+          <span class="brand-status"><i></i> POS is ready</span>
+        </div>
+        <nav aria-label="Main navigation">
+          <button id="nav-pos-btn" class="nav-btn active">POS Interface</button>
+          <button id="nav-admin-btn" class="nav-btn">Menu Management</button>
+        </nav>
+      </div>
+      <div class="user-section">
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch to dark theme" aria-pressed="false">
+          <span class="theme-toggle-icon" aria-hidden="true">☾</span>
+          <span class="theme-toggle-label">Dark</span>
+        </button>
+        <div class="user-avatar" aria-hidden="true">EP</div>
+        <span id="user-email"></span>
+        <button id="logout-btn" class="btn-secondary">Logout</button>
+      </div>
+    </header>
+
+    <!-- POS TERMINAL VIEW -->
+    <div id="view-pos" class="pos-container">
+      <div class="menu-panel">
+        <div class="pos-welcome">
+          <div>
+            <span class="eyebrow">Today's counter</span>
+            <h2 class="section-heading">What are we serving?</h2>
+          </div>
+          <label class="menu-search" for="menu-search-input">
+            <span aria-hidden="true">⌕</span>
+            <input id="menu-search-input" type="search" placeholder="Search menu" autocomplete="off">
+          </label>
+        </div>
+        <div id="menu-category-filter" class="category-filter" aria-label="Filter menu by category">
+          <button type="button" class="category-chip active" data-category="all">All items</button>
+        </div>
+        <div id="pos-menu-grid" class="menu-grid"></div>
+      </div>
+      <div class="cart-panel">
+        <div>
+          <div class="order-heading-row">
+            <h2 class="order-heading">Current Order</h2>
+            <span id="cart-count" class="cart-count">0 items</span>
+          </div>
+          <div id="cart-items" class="cart-items">
+            <p class="empty-state">Cart is empty</p>
+          </div>
+        </div>
+        <div>
+          <div class="cart-total">
+            <span>Total:</span>
+            <span id="cart-total">RM0.00</span>
+          </div>
+          <button id="checkout-btn" class="btn-checkout">Complete Order</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN / MENU MANAGEMENT VIEW -->
+    <div id="view-admin" class="admin-container hidden">
+      <h2 class="section-heading">Admin Area</h2>
+      <p class="auth-subtitle admin-intro">Enter the admin password to manage the menu or view sales reports.</p>
+
+      <div class="admin-tabs">
+        <button type="button" class="admin-tab-btn active" data-tab="menu">Menu Management</button>
+        <button type="button" class="admin-tab-btn" data-tab="sales">Sales Report</button>
+      </div>
+
+      <div id="admin-menu-section">
+        <form id="add-menu-form" class="admin-form">
+          <div class="form-group form-group-wide">
+            <label for="menu-item-name">Item Name</label>
+            <input type="text" id="menu-item-name" required class="form-input" placeholder="e.g. Espresso">
+          </div>
+          <div class="form-group form-group-compact">
+            <label for="menu-item-price">Price (RM)</label>
+            <input type="number" step="0.01" id="menu-item-price" required class="form-input" placeholder="3.50">
+          </div>
+          <div class="form-group form-group-compact">
+            <label for="menu-item-category">Category</label>
+            <input type="text" id="menu-item-category" class="form-input" placeholder="Drinks">
+          </div>
+          <button type="submit" class="btn-primary">Add Item</button>
+        </form>
+
+        <table class="menu-table">
+          <thead>
+            <tr>
+              <th>Item Name</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th class="actions-heading">Action</th>
+            </tr>
+          </thead>
+          <tbody id="admin-menu-list"></tbody>
+        </table>
+      </div>
+
+      <div id="admin-sales-section" class="hidden">
+        <h3 class="section-heading">Sales Report</h3>
+        <div class="report-summary">
+          <div>
+            <strong>Total Orders:</strong>
+            <span id="sales-order-count">0</span>
+          </div>
+          <div>
+            <strong>Total Revenue:</strong>
+            <span id="sales-total-revenue">RM0.00</span>
+          </div>
+        </div>
+        <div id="sales-report-list" class="sales-report-list">
+          <p class="empty-state">Loading sales data...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="admin-password-modal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-card">
+      <h3>Admin Access Required</h3>
+      <p class="reset-help-text">Please enter the admin password to access menu management and sales reports.</p>
+      <form id="admin-password-form">
+        <div class="form-group">
+          <label for="admin-password-input">Admin Password</label>
+          <input type="password" id="admin-password-input" class="form-input" required placeholder="Enter admin password">
+        </div>
+        <div class="modal-actions">
+          <button type="submit" class="btn-primary">Unlock</button>
+          <button type="button" id="admin-password-cancel" class="btn-secondary">Cancel</button>
+        </div>
+        <p id="admin-password-error" class="error-msg hidden"></p>
+      </form>
+    </div>
+  </div>
+
+  <div id="checkout-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="checkout-title">
+    <div class="modal-backdrop"></div>
+    <div class="modal-card">
+      <div id="checkout-form-view">
+        <h3 id="checkout-title">Review your order</h3>
+        <div id="checkout-summary" class="checkout-summary"></div>
+        <p class="checkout-total">Total: <strong id="checkout-total">RM0.00</strong></p>
+        <form id="checkout-form">
+          <div class="form-group">
+            <label for="checkout-order-type">Order type</label>
+            <select id="checkout-order-type" class="form-input" required>
+              <option value="dine-in">Dine in</option>
+              <option value="takeaway">Takeaway</option>
+            </select>
+          </div>
+          <div id="checkout-table-group" class="form-group">
+            <label for="checkout-table-number">Table number</label>
+            <input type="text" id="checkout-table-number" class="form-input" maxlength="20" required>
+          </div>
+          <div class="form-group">
+            <label for="checkout-cash-received">Cash received (RM)</label>
+            <input type="number" id="checkout-cash-received" class="form-input" min="0" step="0.01" required>
+          </div>
+          <p id="checkout-change" class="reset-help-text">Change due: RM0.00</p>
+          <div class="modal-actions">
+            <button id="checkout-confirm" type="submit" class="btn-primary">Confirm order</button>
+            <button id="checkout-cancel" type="button" class="btn-secondary">Cancel</button>
+          </div>
+          <p id="checkout-error" class="error-msg hidden"></p>
+        </form>
+      </div>
+      <div id="checkout-receipt-view" class="hidden">
+        <h3>Order confirmed</h3>
+        <div id="checkout-receipt" class="checkout-summary"></div>
+        <p class="reset-help-text">Cash payment recorded. Anything else?</p>
+        <div class="modal-actions">
+          <button id="checkout-done" type="button" class="btn-primary">Done</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="../javascript/theme.js?v=20261028-dark-theme"></script>
+  <script type="module" src="../javascript/app.js?v=20261028-ui-refresh"></script>
+  <!-- Chatbot UI -->
+  <div id="chatbot-container">
+    <button id="chatbot-toggle" aria-label="Open assistant">⌁</button>
+    <div id="chatbot-panel" class="hidden" role="dialog" aria-label="EchoServe assistant subtitles">
+      <div id="chatbot-header">
+        <strong>EchoServe Assistant</strong>
+        <button id="chatbot-close" aria-label="Close assistant">✕</button>
+      </div>
+      <div id="chatbot-controls">
+        <button id="chatbot-mic" aria-label="Toggle microphone">🎤 Start</button>
+        <div id="chatbot-listening" class="hidden">● Listening…</div>
+      </div>
+      <div id="chatbot-messages" aria-hidden="true"></div>
+      <form id="chatbot-form">
+        <input id="chatbot-input" placeholder="Ask EchoServe…" autocomplete="off" aria-label="Ask EchoServe" />
+        <button type="submit" aria-label="Send message">Send</button>
+      </form>
+      <div id="chatbot-captions" aria-live="polite">
+        <div class="caption-user" id="caption-user"></div>
+        <div class="caption-assistant" id="caption-assistant"></div>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="../javascript/presence_detection.js?v=20261028-camera-layout"></script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Open POS</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-card">
+      <button id="theme-toggle" class="theme-toggle auth-theme-toggle" type="button" aria-label="Switch to dark theme" aria-pressed="false">
+        <span class="theme-toggle-icon" aria-hidden="true">☾</span>
+        <span class="theme-toggle-label">Dark</span>
+      </button>
+      <h2 class="auth-title">Open POS</h2>
+      <p class="auth-subtitle">Sign in to your shop dashboard</p>
+
+      <form id="auth-form">
+        <div class="form-group">
+          <label for="auth-email">Email</label>
+          <input type="email" id="auth-email" required class="form-input" placeholder="admin@shop.com">
+        </div>
+        <div class="form-group">
+          <label for="auth-password">Password</label>
+          <input type="password" id="auth-password" required class="form-input" placeholder="••••••••">
+        </div>
+
+        <div class="auth-link-row">
+          <button type="button" id="forgot-password-link" class="auth-link-btn">Forgot Password?</button>
+        </div>
+
+        <button type="submit" id="auth-submit-btn" class="btn-primary">Login</button>
+      </form>
+
+      <form id="reset-form" class="hidden">
+        <p class="reset-help-text">
+          Enter your account email below. We'll send you a link to reset your password.
+        </p>
+        <div class="form-group">
+          <label for="reset-email">Email Address</label>
+          <input type="email" id="reset-email" required class="form-input" placeholder="admin@shop.com">
+        </div>
+        <button type="submit" class="btn-primary">Send Reset Link</button>
+        <div class="auth-footer">
+          <button type="button" id="back-to-login-link" class="auth-link-btn">← Back to Login</button>
+        </div>
+      </form>
+
+      <div class="auth-footer">
+        <a href="register.html" class="auth-link">Create a shop account</a>
+      </div>
+
+      <div id="auth-error" class="error-msg hidden"></div>
+      <div id="auth-success" class="success-msg hidden"></div>
+    </div>
+  </div>
+
+  <script type="module" src="../javascript/theme.js?v=20261028-dark-theme"></script>
+  <script type="module" src="../javascript/auth.js"></script>
+</body>
+</html>

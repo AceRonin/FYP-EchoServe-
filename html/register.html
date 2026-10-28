@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - Open POS</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-card">
+      <button id="theme-toggle" class="theme-toggle auth-theme-toggle" type="button" aria-label="Switch to dark theme" aria-pressed="false">
+        <span class="theme-toggle-icon" aria-hidden="true">☾</span>
+        <span class="theme-toggle-label">Dark</span>
+      </button>
+      <p class="auth-subtitle">Use this page from localhost:8000 for Firebase authentication to work correctly.</p>
+      <h2 class="auth-title">Create Your Shop</h2>
+      <p class="auth-subtitle">Register your company and start managing orders</p>
+
+      <form id="register-form">
+        <div class="form-group">
+          <label for="company-name">Company / Shop Name</label>
+          <input type="text" id="company-name" required class="form-input" placeholder="e.g. Apex Coffee Shop">
+        </div>
+        <div class="form-group">
+          <label for="register-email">Email</label>
+          <input type="email" id="register-email" required class="form-input" placeholder="admin@shop.com">
+        </div>
+        <div class="form-group">
+          <label for="register-password">Password</label>
+          <input type="password" id="register-password" required class="form-input" placeholder="••••••••">
+        </div>
+
+        <button type="submit" class="btn-primary">Register Company</button>
+      </form>
+
+      <div class="auth-footer">
+        <a href="login.html" class="auth-link">Already have an account? Sign in</a>
+      </div>
+
+      <div id="register-error" class="error-msg hidden"></div>
+      <div id="register-success" class="success-msg hidden"></div>
+    </div>
+  </div>
+
+  <script type="module" src="../javascript/theme.js?v=20261028-dark-theme"></script>
+  <script type="module" src="../javascript/register.js"></script>
+</body>
+</html>
