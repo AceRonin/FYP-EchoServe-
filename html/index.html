@@ -168,22 +168,17 @@
             <label for="checkout-table-number">Table number</label>
             <input type="text" id="checkout-table-number" class="form-input" maxlength="20" required>
           </div>
-          <div class="form-group">
-            <label for="checkout-cash-received">Cash received (RM)</label>
-            <input type="number" id="checkout-cash-received" class="form-input" min="0" step="0.01" required>
-          </div>
-          <p id="checkout-change" class="reset-help-text">Change due: RM0.00</p>
           <div class="modal-actions">
-            <button id="checkout-confirm" type="submit" class="btn-primary">Confirm order</button>
+            <button id="checkout-confirm" type="submit" class="btn-primary">Place order</button>
             <button id="checkout-cancel" type="button" class="btn-secondary">Cancel</button>
           </div>
           <p id="checkout-error" class="error-msg hidden"></p>
         </form>
       </div>
       <div id="checkout-receipt-view" class="hidden">
-        <h3>Order confirmed</h3>
+        <h3>Order placed</h3>
         <div id="checkout-receipt" class="checkout-summary"></div>
-        <p class="reset-help-text">Cash payment recorded. Anything else?</p>
+        <p class="reset-help-text">Please take your order number to the counter to pay by cash. Your order will be prepared after payment.</p>
         <div class="modal-actions">
           <button id="checkout-done" type="button" class="btn-primary">Done</button>
         </div>
@@ -192,7 +187,7 @@
   </div>
 
   <script type="module" src="../javascript/theme.js?v=20261028-dark-theme"></script>
-  <script type="module" src="../javascript/app.js?v=20261028-ui-refresh"></script>
+  <script type="module" src="../javascript/app.js?v=20261112-kiosk-checkout"></script>
   <!-- Chatbot UI -->
   <div id="chatbot-container">
     <button id="chatbot-toggle" aria-label="Open assistant">⌁</button>

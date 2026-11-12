@@ -8,7 +8,7 @@ EchoServe is a modern, cloud-connected Point-of-Sale (POS) web application desig
 
 - **Point of Sale (POS) Interface**:
   - Live menu browsing with search and category filtering.
-  - Real-time cart calculation, quantity adjustments, and receipt checkout.
+  - Kiosk checkout assigns a sequential order number and directs customers to the counter for cash payment.
 - **Role-Based Admin Dashboard**:
   - Secure menu item creation, price updates, and deletion.
   - Live company sales history, analytics, and order tracking.
@@ -164,4 +164,3 @@ docker run -d -p 8080:8080 --env-file .env echoserve-ai:latest
 
 - **Never commit `.env`**: Always keep your secret keys out of version control. The `.gitignore` file is pre-configured to ignore `.env`, `.venv`, and editor settings.
 - **Firebase API Keys**: Firebase web config keys identify your project. Ensure you set HTTP Referrer restrictions in Google Cloud Console to only allow your authorized domains (e.g. `localhost:8000` and your production domain).
-

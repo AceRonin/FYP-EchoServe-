@@ -3,7 +3,7 @@ import {
   getAuth, signOut, onAuthStateChanged, EmailAuthProvider, reauthenticateWithCredential 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { 
-  getFirestore, doc, getDoc, getDocs, collection, addDoc, onSnapshot, deleteDoc, updateDoc, serverTimestamp 
+  getFirestore, doc, getDoc, getDocs, collection, addDoc, onSnapshot, deleteDoc, updateDoc, runTransaction, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 // FIREBASE CONFIGURATION
@@ -130,8 +130,6 @@ function initAdminUI(){
   const checkoutOrderType = document.getElementById('checkout-order-type');
   const checkoutTableGroup = document.getElementById('checkout-table-group');
   const checkoutTableNumber = document.getElementById('checkout-table-number');
-  const checkoutCashReceived = document.getElementById('checkout-cash-received');
-  const checkoutChange = document.getElementById('checkout-change');
   const checkoutFormView = document.getElementById('checkout-form-view');
   const checkoutReceiptView = document.getElementById('checkout-receipt-view');
   const checkoutReceipt = document.getElementById('checkout-receipt');
@@ -158,20 +156,7 @@ function initAdminUI(){
     const totalCents = cart.reduce((sum, item) => sum + Math.round(Number(item.price) * 100) * item.quantity, 0);
     const total = totalCents / 100;
     if (checkoutTotal) checkoutTotal.textContent = formatCurrency(total);
-    if (checkoutCashReceived){
-      checkoutCashReceived.min = total.toFixed(2);
-      checkoutCashReceived.value = '';
-      checkoutCashReceived.placeholder = total.toFixed(2);
-    }
-    if (checkoutChange) checkoutChange.textContent = `Change due: ${formatCurrency(0)}`;
     checkoutModal?.classList.remove('hidden');
-  });
-
-  checkoutCashReceived?.addEventListener('input', () => {
-    const totalCents = cart.reduce((sum, item) => sum + Math.round(Number(item.price) * 100) * item.quantity, 0);
-    const receivedCents = Math.round((Number(checkoutCashReceived.value) || 0) * 100);
-    const changeCents = Math.max(0, receivedCents - totalCents);
-    if (checkoutChange) checkoutChange.textContent = `Change due: ${formatCurrency(changeCents / 100)}`;
   });
 
   checkoutOrderType?.addEventListener('change', () => {
@@ -215,15 +200,6 @@ function initAdminUI(){
     });
     const totalCents = items.reduce((sum, item) => sum + Math.round(item.lineTotal * 100), 0);
     const total = totalCents / 100;
-    const cashReceivedCents = Math.round(Number(checkoutCashReceived?.value) * 100);
-    if (!Number.isFinite(cashReceivedCents) || cashReceivedCents < totalCents){
-      if (checkoutError){
-        checkoutError.textContent = 'Cash received must be at least the order total.';
-        checkoutError.classList.remove('hidden');
-      }
-      if (confirmButton) confirmButton.disabled = false;
-      return;
-    }
     if (typeof window.renderCart !== 'function'){
       if (checkoutError){
         checkoutError.textContent = 'The order screen is still loading. Please try again.';
@@ -232,24 +208,31 @@ function initAdminUI(){
       if (confirmButton) confirmButton.disabled = false;
       return;
     }
-    const cashReceived = cashReceivedCents / 100;
-    const changeDue = (cashReceivedCents - totalCents) / 100;
-    let orderRef;
+    const companyRef = doc(db, 'companies', currentCompanyId);
+    const orderRef = doc(collection(db, 'companies', currentCompanyId, 'orders'));
+    let orderNumber;
 
     try {
-      orderRef = await addDoc(collection(db, 'companies', currentCompanyId, 'orders'), {
-        items,
-        total,
-        orderType,
-        tableNumber: tableNumber || null,
-        paymentMethod: 'cash',
-        paymentStatus: 'paid',
-        cashReceived,
-        changeDue,
-        orderStatus: 'received',
-        createdAt: serverTimestamp(),
-        paidAt: serverTimestamp(),
-        createdBy: currentUser.uid
+      await runTransaction(db, async transaction => {
+        const companySnapshot = await transaction.get(companyRef);
+        const currentSequence = companySnapshot.get('orderNumberSequence') || 0;
+        if (!Number.isSafeInteger(currentSequence) || currentSequence < 0) {
+          throw new Error('The order number sequence is invalid.');
+        }
+        orderNumber = String(currentSequence + 1).padStart(4, '0');
+        transaction.set(companyRef, { orderNumberSequence: currentSequence + 1 }, { merge: true });
+        transaction.set(orderRef, {
+          orderNumber,
+          items,
+          total,
+          orderType,
+          tableNumber: tableNumber || null,
+          paymentMethod: 'cash',
+          paymentStatus: 'pending',
+          orderStatus: 'awaiting_payment',
+          createdAt: serverTimestamp(),
+          createdBy: currentUser.uid
+        });
       });
     } catch (error) {
       console.error('Failed to place order:', error);
@@ -265,18 +248,16 @@ function initAdminUI(){
     window.renderCart();
     if (checkoutReceipt){
       checkoutReceipt.textContent = [
-        `Order number: ${orderRef.id}`,
+        `Order number: #${orderNumber}`,
         ...items.map(item => `${item.quantity} x ${item.name} — ${formatCurrency(item.lineTotal)}`),
         `Total: ${formatCurrency(total)}`,
-        `Order type: ${orderType === 'dine-in' ? `Dine in (Table ${tableNumber})` : 'Takeaway'}`,
-        `Cash received: ${formatCurrency(cashReceived)}`,
-        `Change due: ${formatCurrency(changeDue)}`
+        `Order type: ${orderType === 'dine-in' ? `Dine in (Table ${tableNumber})` : 'Takeaway'}`
       ].join('\n');
     }
     checkoutFormView?.classList.add('hidden');
     checkoutReceiptView?.classList.remove('hidden');
     if (confirmButton) confirmButton.disabled = false;
-    window.dispatchEvent(new CustomEvent('echoserve:order-complete', { detail: { orderId: orderRef.id, total } }));
+    window.dispatchEvent(new CustomEvent('echoserve:order-complete', { detail: { orderNumber, total } }));
   });
 
   const logoutBtn = document.getElementById('logout-btn');
@@ -554,7 +535,7 @@ onAuthStateChanged(auth, async (user) => {
           const card = document.createElement('article');
           card.className = 'sales-order-card';
           const heading = document.createElement('strong');
-          heading.textContent = `Order ${order.id}`;
+          heading.textContent = `Order #${order.orderNumber || order.id}`;
           const details = document.createElement('p');
           const orderLocation = order.orderType === 'dine-in'
             ? `Dine in${order.tableNumber ? ` — Table ${order.tableNumber}` : ''}`
@@ -915,8 +896,8 @@ onAuthStateChanged(auth, async (user) => {
   }
 
   window.addEventListener('echoserve:order-complete', event => {
-    const { orderId, total } = event.detail || {};
-    addMessage(`Order ${orderId} placed for ${formatCurrency(total)}. Cash payment recorded. Anything else?`, 'bot');
+    const { orderNumber, total } = event.detail || {};
+    addMessage(`Order #${orderNumber} placed for ${formatCurrency(total)}. Please take your order number to the counter to pay by cash.`, 'bot');
   });
 
   async function handleAssistantAction(text){
